@@ -10,9 +10,12 @@ df = df[columns]
 
 # Splitter les colonnes genres  content_descriptor et categories
 
-new_genres = df['genres'].str.split(', ', expand=True).stack().unique()
-new_content_descriptor = df['content_descriptor'].str.split(', ', expand=True).stack().unique()
-new_categories = df['categories'].str.split(', ', expand=True).stack().unique()
+new_genres = df['genres'].str.split(', ', expand=True)
+new_genres = pd.get_dummies(new_genres.apply(pd.Series).stack()).groupby(level=0).sum()
+print(new_genres)
+
+# new_content_descriptor = df['content_descriptor'].str.split(', ', expand=True).stack().unique()
+# new_categories = df['categories'].str.split(', ', expand=True).stack().unique()
 
 # Créer des colonnes pour chaque genre
 
@@ -35,7 +38,7 @@ for i, row in df.iterrows():
 
     for category in row['categories'].split(', '):
         df.at[i, category] = 1
-        
+
 # Supprimer les colonnes genres, content_descriptor et categories
 df = df.drop(['genres', 'content_descriptor', 'categories'], axis=1)
 
