@@ -8,51 +8,51 @@ df = pd.read_csv('steam-games.csv')
 columns = ['genres','categories','developer','publisher','original_price','discounted_price','dlc_available','age_rating','content_descriptor','win_support','mac_support','linux_support','overall_review_%','overall_review_count']
 df = df[columns]
 
-# Splitter les colonnes genres  content_descriptor et categories
+# Splitter les colonnes genres content_descriptor et categories
 
 new_genres = df['genres'].str.split(', ', expand=True)
-new_genres = pd.get_dummies(new_genres.apply(pd.Series).stack()).groupby(level=0).sum()
-print(new_genres)
+new_genres = pd.get_dummies(new_genres.stack()).groupby(level=0).sum()
 
-# new_content_descriptor = df['content_descriptor'].str.split(', ', expand=True).stack().unique()
-# new_categories = df['categories'].str.split(', ', expand=True).stack().unique()
+new_content_descriptor = df['content_descriptor'].str.split(', ', expand=True)
+new_content_descriptor = pd.get_dummies(new_content_descriptor.stack()).groupby(level=0).sum()
 
-# Créer des colonnes pour chaque genre
-
-df = df.join(pd.DataFrame(columns=new_genres, index=df.index))
-df = df.join(pd.DataFrame(columns=new_content_descriptor, index=df.index))
-df = df.join(pd.DataFrame(columns=new_categories, index=df.index))
-
-# Remplir les colonnes avec des 0 et 1
-
-df[new_genres] = 0
-df[new_content_descriptor] = 0
-df[new_categories] = 0
-
-for i, row in df.iterrows():
-    for genre in row['genres'].split(', '):
-        df.at[i, genre] = 1
-
-    for content_descriptor in row['content_descriptor'].split(', '):
-        df.at[i, content_descriptor] = 1
-
-    for category in row['categories'].split(', '):
-        df.at[i, category] = 1
-
-# Supprimer les colonnes genres, content_descriptor et categories
-df = df.drop(['genres', 'content_descriptor', 'categories'], axis=1)
+new_categories = df['categories'].str.split(', ', expand=True)
+new_categories = pd.get_dummies(new_categories.stack()).groupby(level=0).sum()
 
 
+# get_dumies pour developer, publisher
+new_developer = pd.get_dummies(df['developer'])
+new_publisher = pd.get_dummies(df['publisher'])
 
+# Ajouter les colonnes séparées au DataFrame
+df = pd.concat([df, new_genres, new_content_descriptor, new_categories, new_developer, new_publisher], axis=1)
+
+# Supprimer les colonnes originales
+df.drop(columns=['genres', 'categories', 'developer', 'publisher', 'content_descriptor'], inplace=True)
+
+# Si la colonne original_price contient des valeurs manquantes, les remplacer par la valeur pour discounted_price
+df['price'] = df['original_price'].fillna(df['discounted_price'])
+df.drop(columns=['original_price', 'discounted_price'], inplace=True)
+
+# remplacer la colonne original_price en float
+df['price'] = df['price'].str.replace('₹', '')
+df['price'] = df['price'].str.replace(',', '')
+df['price'] = df['price'].str.replace('Free', '0')
+
+
+print(df['price'])
 
 
 
 # Matrice de correlation
-correlation_matrix = df.corr()
+dfcore = df[['price','dlc_available','age_rating','win_support','mac_support','linux_support','overall_review_count']]
+correlation_matrix = dfcore.corr()
 print(correlation_matrix)
+print(df.head())
 
 # Séparer les caractéristiques (X) de la variable cible (y)
-target_variable = 'overall_review'
+target_variable = 'overall_review_count'
+df = df.drop('overall_review_%', axis=1)
 
 X = df.drop(target_variable, axis=1)
 y = df[target_variable]
