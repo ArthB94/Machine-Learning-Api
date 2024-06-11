@@ -1,6 +1,6 @@
 import pandas as pd
 from sklearn.linear_model import LinearRegression
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, GridSearchCV, RandomizedSearchCV
 from sklearn.metrics import mean_squared_error
 from sklearn.preprocessing import MinMaxScaler
 
@@ -19,7 +19,8 @@ from sklearn.preprocessing import MinMaxScaler
 
 # Charger les données à partir du fichier CSV
 df = pd.read_csv('steam-games.csv')
-columns = ['genres','categories','developer','publisher','original_price','discounted_price','dlc_available','age_rating','content_descriptor','win_support','mac_support','linux_support','overall_review_%','overall_review_count']
+# columns = ['genres','categories','developer','publisher','original_price','discounted_price','dlc_available','age_rating','content_descriptor','win_support','mac_support','linux_support','overall_review_%','overall_review_count']
+columns = ['genres','categories','developer','publisher','original_price','discounted_price','age_rating','content_descriptor','win_support','mac_support','linux_support','overall_review_%','overall_review_count']
 df = df[columns]
 
 # Splitter les colonnes genres content_descriptor et categories
@@ -81,20 +82,20 @@ df = df.dropna()
 
 
 # Matrice de correlation
-dfcore = df[['price','dlc_available','age_rating','win_support','mac_support','linux_support','overall_review_count']]
-correlation_matrix = dfcore.corr()
-print(correlation_matrix)
-print(df.head())
+# dfcore = df[['price','dlc_available','age_rating','win_support','mac_support','linux_support','overall_review_count']]
+# correlation_matrix = dfcore.corr()
+# print(correlation_matrix)
+# print(df.head())
 
 # Séparer les caractéristiques (X) de la variable cible (y)
-# target_variable = 'overall_review_count'
+target_variable = 'overall_review_%'
 # df = df.drop('overall_review_%', axis=1)
 
-# X = df.drop(target_variable, axis=1)
-# y = df[target_variable]
+X = df.drop(target_variable, axis=1)
+y = df[target_variable]
 
-y = df[['overall_review_count', 'overall_review_%']]
-X = df.drop(['overall_review_count', 'overall_review_%'], axis=1)
+# y = df[['overall_review_count', 'overall_review_%']]
+# X = df.drop(['overall_review_count', 'overall_review_%'], axis=1)
 
 df1 = X[X.isna().any(axis=1)]
 print (df1)
@@ -102,20 +103,67 @@ print (df1)
 # Diviser les données en ensembles d'entraînement et de test
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=7)
 
-# Créer un modèle de régression linéaire
-model = LinearRegression()
+# # Créer un modèle de régression linéaire
+# model = LinearRegression()
+# 
+# # Entraîner le modèle sur les données d'entraînement
+# model.fit(X_train, y_train)
+# 
+# # Faire des prédictions sur les données de test
+# y_pred = model.predict(X_test)
+# 
+# # Calculer l'erreur quadratique moyenne (RMSE)
+# rmse = mean_squared_error(y_test, y_pred, squared=False)
+# 
+# # Afficher le RMSE
+# print('RMSE:', rmse)
 
-# Entraîner le modèle sur les données d'entraînement
+from sklearn.ensemble import GradientBoostingRegressor
+# Define the parameter grid
+# param_grid = {
+#     'n_estimators': [50, 100, 150, 200, 250, 300, 350, 400, 450, 500],
+#     'learning_rate': [0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.1, 0.5, 1, 2],
+#     'max_depth': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+#     'min_samples_split': [2, 4, 6, 8, 10, 12, 14, 16, 18, 20],
+#     'min_samples_leaf': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+# }
+param_grid = {
+    'n_estimators': [100, 200, 300],
+    'learning_rate': [0.01, 0.1, 1],
+    'max_depth': [3, 5, 7],
+    'min_samples_split': [2, 5, 10],
+    'min_samples_leaf': [1, 2, 4]
+}
+
+# Create a Gradient Boosting Regressor
+model = GradientBoostingRegressor()
+
+# # Create the grid search object
+# grid_search = GridSearchCV(estimator=model, param_grid=param_grid, cv=3, scoring='neg_root_mean_squared_error')
+# 
+# # Fit the grid search object to the data
+# grid_search.fit(X_train, y_train)
+# 
+# # Get the best parameters
+# best_params = grid_search.best_params_
+
+# # Create the randomized search object
+# random_search = RandomizedSearchCV(estimator=model, param_distributions=param_grid, cv=3, scoring='neg_root_mean_squared_error', n_iter=10, n_jobs=-1)
+# 
+# # Fit the randomized search object to the data
+# random_search.fit(X_train, y_train)
+# 
+# # Get the best parameters
+# best_params = random_search.best_params_
+# 
+# # Create a new model with the best parameters
+# model = GradientBoostingRegressor(**best_params)
 model.fit(X_train, y_train)
-
-# Faire des prédictions sur les données de test
 y_pred = model.predict(X_test)
-
-# Calculer l'erreur quadratique moyenne (RMSE)
 rmse = mean_squared_error(y_test, y_pred, squared=False)
-
-# Afficher le RMSE
 print('RMSE:', rmse)
+print(model.score(X_test, y_test))
+
 
 
 # Sauvegarder le modèle dans un fichier binaire
