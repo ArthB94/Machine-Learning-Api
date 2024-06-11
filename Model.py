@@ -147,17 +147,17 @@ model = GradientBoostingRegressor()
 # # Get the best parameters
 # best_params = grid_search.best_params_
 
-# # Create the randomized search object
-# random_search = RandomizedSearchCV(estimator=model, param_distributions=param_grid, cv=3, scoring='neg_root_mean_squared_error', n_iter=10, n_jobs=-1)
-# 
-# # Fit the randomized search object to the data
-# random_search.fit(X_train, y_train)
-# 
-# # Get the best parameters
-# best_params = random_search.best_params_
-# 
-# # Create a new model with the best parameters
-# model = GradientBoostingRegressor(**best_params)
+# Create the randomized search object
+random_search = RandomizedSearchCV(estimator=model, param_distributions=param_grid, cv=3, scoring='neg_root_mean_squared_error', n_iter=10, n_jobs=-1)
+
+# Fit the randomized search object to the data
+random_search.fit(X_train, y_train)
+
+# Get the best parameters
+best_params = random_search.best_params_
+
+# Create a new model with the best parameters
+model = GradientBoostingRegressor(**best_params)
 model.fit(X_train, y_train)
 y_pred = model.predict(X_test)
 rmse = mean_squared_error(y_test, y_pred, squared=False)
