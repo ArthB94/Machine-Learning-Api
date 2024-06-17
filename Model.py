@@ -128,11 +128,15 @@ from sklearn.ensemble import GradientBoostingRegressor
 #     'min_samples_leaf': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 # }
 param_grid = {
-    'n_estimators': [100, 200, 300],
-    'learning_rate': [0.01, 0.1, 1],
-    'max_depth': [3, 5, 7],
-    'min_samples_split': [2, 5, 10],
-    'min_samples_leaf': [1, 2, 4]
+    'n_estimators': [100, 200, 300, 400, 500],
+    'learning_rate': [0.01, 0.05, 0.1, 0.5, 1],
+    'max_depth': [3, 5, 7, 9, 11],
+    'min_samples_split': [2, 5, 10, 15, 20],
+    'min_samples_leaf': [1, 2, 4, 6, 8],
+    'subsample': [0.6, 0.7, 0.8, 0.9, 1.0],
+    'max_features': ['sqrt', 'log2', None],
+    'loss': ['huber', 'quantile', 'absolute_error', 'squared_error'],
+    'alpha': [0.1, 0.5, 0.9]
 }
 
 # Create a Gradient Boosting Regressor
