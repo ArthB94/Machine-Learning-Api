@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  Bird,
   Book,
   Bot,
   Code2,
@@ -17,8 +16,7 @@ import {
   Share,
   SquareTerminal,
   SquareUser,
-  Triangle,
-  Turtle,
+  Gamepad2,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -57,10 +55,65 @@ import {
   MultiSelectorTrigger,
 } from "@/components/ui/multiselector";
 import { useState } from "react";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 export default function Dashboard() {
   const [genres, setGenres] = useState<string[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
+
+  const predictions = [
+    {
+      number: "#01",
+      number_reviews: "Unavoidable",
+      price: "60€",
+      success: "76%",
+    },
+    {
+      number: "#02",
+      number_reviews: "Unavoidable",
+      price: "60€",
+      success: "76%",
+    },
+    {
+      number: "#03",
+      number_reviews: "Unavoidable",
+      price: "60€",
+      success: "76%",
+    },
+    {
+      number: "#04",
+      number_reviews: "Unavoidable",
+      price: "60€",
+      success: "76%",
+    },
+    {
+      number: "#05",
+      number_reviews: "Unavoidable",
+      price: "60€",
+      success: "76%",
+    },
+    {
+      number: "#06",
+      number_reviews: "Unavoidable",
+      price: "60€",
+      success: "76%",
+    },
+    {
+      number: "#07",
+      number_reviews: "Unavoidable",
+      price: "60€",
+      success: "76%",
+    },
+  ];
 
   return (
     <div className="grid h-screen w-full pl-[56px]">
@@ -68,7 +121,7 @@ export default function Dashboard() {
       <aside className="inset-y fixed  left-0 z-20 flex h-full flex-col border-r">
         <div className="border-b p-2">
           <Button variant="outline" size="icon" aria-label="Home">
-            <Triangle className="size-5 fill-foreground" />
+            <Gamepad2 className="size-5 fill-foreground" />
           </Button>
         </div>
         <nav className="grid gap-1 p-2">
@@ -717,53 +770,45 @@ export default function Dashboard() {
                   </MultiSelector>
                 </div>
               </fieldset>
+              <Button type="submit" size="sm" className="mx-auto gap-1.5">
+                Predict success
+              </Button>
             </form>
           </div>
-          <div className="relative flex h-full min-h-[50vh] flex-col rounded-xl bg-muted/50 p-4 lg:col-span-2">
+          <fieldset className="relative h-full lg:col-span-2 grid gap-6 rounded-lg border p-4">
+            <legend className="-ml-1 px-1 text-sm font-medium">Output</legend>
+            <Table>
+              <TableCaption>List of your recent predictions.</TableCaption>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[130px]">Prediction #</TableHead>
+                  <TableHead>Nb. of reviews</TableHead>
+                  <TableHead>Price</TableHead>
+                  <TableHead className="text-right">Success</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {predictions.map((invoice) => (
+                  <TableRow key={invoice.number}>
+                    <TableCell className="font-medium">
+                      {invoice.number}
+                    </TableCell>
+                    <TableCell>{invoice.number_reviews}</TableCell>
+                    <TableCell>{invoice.price}</TableCell>
+                    <TableCell className="text-right">
+                      {invoice.success}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </fieldset>
+          {/* <div className="relative flex h-full min-h-[50vh] flex-col rounded-xl bg-muted/50 p-4 lg:col-span-2">
             <Badge variant="outline" className="absolute right-3 top-3">
               Output
             </Badge>
             <div className="flex-1" />
-            <form
-              className="relative overflow-hidden rounded-lg border bg-background focus-within:ring-1 focus-within:ring-ring"
-              x-chunk="dashboard-03-chunk-1"
-            >
-              <Label htmlFor="message" className="sr-only">
-                Message
-              </Label>
-              <Textarea
-                id="message"
-                placeholder="Type your message here..."
-                className="min-h-12 resize-none border-0 p-3 shadow-none focus-visible:ring-0"
-              />
-              <div className="flex items-center p-3 pt-0">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <Paperclip className="size-4" />
-                        <span className="sr-only">Attach file</span>
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="top">Attach File</TooltipContent>
-                  </Tooltip>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <Mic className="size-4" />
-                        <span className="sr-only">Use Microphone</span>
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="top">Use Microphone</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                <Button type="submit" size="sm" className="ml-auto gap-1.5">
-                  Send Message
-                  <CornerDownLeft className="size-3.5" />
-                </Button>
-              </div>
-            </form>
-          </div>
+          </div> */}
         </main>
       </div>
     </div>
