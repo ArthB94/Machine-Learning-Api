@@ -171,9 +171,7 @@ print(model.score(X_test, y_test))
 
 
 # Sauvegarder le modèle dans un fichier binaire
-# import pickle
+import pickle
 
-# with open("model.pkl", "wb") as f:
-#     pickle.dump(model, f)
-
-
+with open("model.pkl", "wb") as f:
+    pickle.dump(model, f)
