@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 import pickle
 import numpy as np
 from typing import List, Union
@@ -6,6 +7,17 @@ from typing import List, Union
 from pydantic import BaseModel
 
 app = FastAPI()
+
+# Autoriser les requêtes CORS
+origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Charger le modèle
 with open("model.pkl", "rb") as f:  # Ouvrir le fichier en mode lecture binaire
@@ -15,7 +27,7 @@ with open("model.pkl", "rb") as f:  # Ouvrir le fichier en mode lecture binaire
 
 class Features(BaseModel):
     features: List[Union[
-        int, bool, bool, bool, int, float, float, float, float, float, float, float, float, float, float, float, float,
+        int, bool, bool, bool, float, float, float, float, float, float, float, float, float, float, float, float, float,
         float, float, float, float, float, float, float, float, float, float, float, float, float, float, float, float,
         float, float, float, float]]
 

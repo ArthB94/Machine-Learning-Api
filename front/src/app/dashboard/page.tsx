@@ -4,10 +4,7 @@ import {
   Book,
   Bot,
   Code2,
-  CornerDownLeft,
   LifeBuoy,
-  Mic,
-  Paperclip,
   SignalLow,
   SignalMedium,
   SignalHigh,
@@ -60,60 +57,136 @@ import {
   TableBody,
   TableCaption,
   TableCell,
-  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
 
 export default function Dashboard() {
+  // CONSTANTS
+  const predictionsList: any[] | (() => any[]) = [];
+
+  const genresList = [
+    "Action",
+    "Adventure",
+    "Casual",
+    "Free to Play",
+    "Massively Multiplayer",
+    "RPG",
+    "Racing",
+    "Simulation",
+    "Sports",
+    "Strategy",
+  ];
+
+  const categoriesList = [
+    "Cross-Platform Multiplayer",
+    "Family Sharing",
+    "In-App Purchases",
+    "Includes level editor",
+    "Online Co-op",
+    "Online PvP",
+    "Profile Features Limited",
+    "Remote Play Together",
+    "Remote Play on TV",
+    "Shared/Split Screen Co-op",
+    "Shared/Split Screen PvP",
+    "Single-player",
+    "Stats",
+    "Steam Achievements",
+    "Steam Cloud",
+    "Steam Leaderboards",
+    "Steam Trading Cards",
+    "Steam Workshop",
+    "Steam is learning about this game",
+    "Tracked Controller Support",
+    "VR Only",
+  ];
+
+  // STATES
   const [genres, setGenres] = useState<string[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
+  const [ageRating, setAgeRating] = useState<boolean>(false);
+  const [windows, setWindows] = useState<boolean>(false);
+  const [macos, setMacos] = useState<boolean>(false);
+  const [linux, setLinux] = useState<boolean>(false);
+  const [nbReviews, setNbReviews] = useState<string>("unavoidable");
+  const [predictions, setPredictions] = useState(predictionsList);
 
-  const predictions = [
-    {
-      number: "#01",
-      number_reviews: "Unavoidable",
-      price: "60€",
-      success: "76%",
-    },
-    {
-      number: "#02",
-      number_reviews: "Unavoidable",
-      price: "60€",
-      success: "76%",
-    },
-    {
-      number: "#03",
-      number_reviews: "Unavoidable",
-      price: "60€",
-      success: "76%",
-    },
-    {
-      number: "#04",
-      number_reviews: "Unavoidable",
-      price: "60€",
-      success: "76%",
-    },
-    {
-      number: "#05",
-      number_reviews: "Unavoidable",
-      price: "60€",
-      success: "76%",
-    },
-    {
-      number: "#06",
-      number_reviews: "Unavoidable",
-      price: "60€",
-      success: "76%",
-    },
-    {
-      number: "#07",
-      number_reviews: "Unavoidable",
-      price: "60€",
-      success: "76%",
-    },
-  ];
+  // HANDLERS
+  const handleAgeRatingClick = () => setAgeRating(!ageRating);
+  const handleWindowsClick = () => setWindows(!windows);
+  const handleMacosClick = () => setMacos(!macos);
+  const handleLinuxClick = () => setLinux(!linux);
+  const handleNumberReviewsChange = (value: string) => setNbReviews(value);
+
+  // Submit button onClick
+  const handleSubmit = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+
+    let nbReviewsValue;
+    switch (nbReviews) {
+      case "known":
+        nbReviewsValue = 0.1;
+        break;
+      case "talked_about":
+        nbReviewsValue = 0.5;
+        break;
+      default:
+        nbReviewsValue = 1;
+        break;
+    }
+
+    const price = document.getElementById("price") as HTMLInputElement;
+    var priceValue = price.value;
+    if (priceValue === "") priceValue = "0";
+
+    // Get the selected genres and categories
+    var selectedGenres = genresList.map((genre) =>
+      genres.indexOf(genre) > -1 ? 1 : 0
+    );
+    var selectedCategories = categoriesList.map((category) =>
+      categories.indexOf(category) > -1 ? 1 : 0
+    );
+
+    let body = {
+      features: [
+        ageRating ? 1 : 0,
+        windows,
+        macos,
+        linux,
+        nbReviewsValue,
+        ...selectedGenres,
+        ...selectedCategories,
+        // priceValue as float
+        parseFloat(priceValue),
+      ],
+    };
+
+    // Send post request to the api
+    fetch("http://localhost:8000/predict", {
+      method: "POST",
+      body: JSON.stringify(body),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }).then((response) => {
+      // Get the prediction value from the response
+      response.json().then((data) => {
+        console.log(data.prediction[0]);
+        setPredictions([
+          ...predictions,
+          {
+            number: "#" + (predictions.length + 1),
+            number_reviews:
+              nbReviews.charAt(0).toUpperCase() + nbReviews.slice(1),
+            price: priceValue + "€",
+            success: data.prediction[0].toFixed(0) + "%",
+          },
+        ]);
+      });
+    });
+  };
 
   return (
     <div className="grid h-screen w-full pl-[56px]">
@@ -534,7 +607,10 @@ export default function Dashboard() {
                 </legend>
                 <div className="grid gap-3">
                   <Label htmlFor="nb_reviews">Number of Reviews</Label>
-                  <Select>
+                  <Select
+                    onValueChange={handleNumberReviewsChange}
+                    defaultValue={nbReviews}
+                  >
                     <SelectTrigger
                       id="nb_reviews"
                       className="items-start [&_[data-description]]:hidden"
@@ -588,7 +664,11 @@ export default function Dashboard() {
                   </Select>
                 </div>
                 <div className="items-top flex space-x-2">
-                  <Checkbox id="age_rating" />
+                  <Checkbox
+                    id="age_rating"
+                    checked={ageRating}
+                    onCheckedChange={handleAgeRatingClick}
+                  />
                   <div className="grid gap-1.5 leading-none">
                     <Label
                       htmlFor="age_rating"
@@ -612,7 +692,11 @@ export default function Dashboard() {
                   Compatibility
                 </legend>
                 <div className="flex items-center space-x-2">
-                  <Checkbox id="windows" />
+                  <Checkbox
+                    id="windows"
+                    checked={windows}
+                    onCheckedChange={handleWindowsClick}
+                  />
                   <Label
                     htmlFor="windows"
                     className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
@@ -621,7 +705,11 @@ export default function Dashboard() {
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Checkbox id="macos" />
+                  <Checkbox
+                    id="macos"
+                    checked={macos}
+                    onCheckedChange={handleMacosClick}
+                  />
                   <Label
                     htmlFor="macos"
                     className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
@@ -630,7 +718,11 @@ export default function Dashboard() {
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Checkbox id="linux" />
+                  <Checkbox
+                    id="linux"
+                    checked={linux}
+                    onCheckedChange={handleLinuxClick}
+                  />
                   <Label
                     htmlFor="linux"
                     className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
@@ -656,34 +748,11 @@ export default function Dashboard() {
                     </MultiSelectorTrigger>
                     <MultiSelectorContent>
                       <MultiSelectorList>
-                        <MultiSelectorItem value={"Action"}>
-                          Action
-                        </MultiSelectorItem>
-                        <MultiSelectorItem value={"Adventure"}>
-                          Adventure
-                        </MultiSelectorItem>
-                        <MultiSelectorItem value={"Casual"}>
-                          Casual
-                        </MultiSelectorItem>
-                        <MultiSelectorItem value={"Free to Play"}>
-                          Free to Play
-                        </MultiSelectorItem>
-                        <MultiSelectorItem value={"Massively Multiplayer"}>
-                          Massively Multiplayer
-                        </MultiSelectorItem>
-                        <MultiSelectorItem value={"RPG"}>RPG</MultiSelectorItem>
-                        <MultiSelectorItem value={"Racing"}>
-                          Racing
-                        </MultiSelectorItem>
-                        <MultiSelectorItem value={"Simulation"}>
-                          Simulation
-                        </MultiSelectorItem>
-                        <MultiSelectorItem value={"Sports"}>
-                          Sports
-                        </MultiSelectorItem>
-                        <MultiSelectorItem value={"Strategy"}>
-                          Strategy
-                        </MultiSelectorItem>
+                        {genresList.map((genre) => (
+                          <MultiSelectorItem key={genre} value={genre}>
+                            {genre}
+                          </MultiSelectorItem>
+                        ))}
                       </MultiSelectorList>
                     </MultiSelectorContent>
                   </MultiSelector>
@@ -700,77 +769,22 @@ export default function Dashboard() {
                     </MultiSelectorTrigger>
                     <MultiSelectorContent>
                       <MultiSelectorList>
-                        <MultiSelectorItem value={"Cross-Platform Multiplayer"}>
-                          Cross-Platform Multiplayer
-                        </MultiSelectorItem>
-                        <MultiSelectorItem value={"Family Sharing"}>
-                          Family Sharing
-                        </MultiSelectorItem>
-                        <MultiSelectorItem value={"In-App Purchases"}>
-                          In-App Purchases
-                        </MultiSelectorItem>
-                        <MultiSelectorItem value={"Includes level editor"}>
-                          Includes level editor
-                        </MultiSelectorItem>
-                        <MultiSelectorItem value={"Online Co-op"}>
-                          Online Co-op
-                        </MultiSelectorItem>
-                        <MultiSelectorItem value={"Online PvP"}>
-                          Online PvP
-                        </MultiSelectorItem>
-                        <MultiSelectorItem value={"Profile Features Limited"}>
-                          Profile Features Limited
-                        </MultiSelectorItem>
-                        <MultiSelectorItem value={"Remote Play Together"}>
-                          Remote Play Together
-                        </MultiSelectorItem>
-                        <MultiSelectorItem value={"Remote Play on TV"}>
-                          Remote Play on TV
-                        </MultiSelectorItem>
-                        <MultiSelectorItem value={"Shared/Split Screen Co-op"}>
-                          Shared/Split Screen Co-op
-                        </MultiSelectorItem>
-                        <MultiSelectorItem value={"Shared/Split Screen PvP"}>
-                          Shared/Split Screen PvP
-                        </MultiSelectorItem>
-                        <MultiSelectorItem value={"Single-player"}>
-                          Single-player
-                        </MultiSelectorItem>
-                        <MultiSelectorItem value={"Stats"}>
-                          Stats
-                        </MultiSelectorItem>
-                        <MultiSelectorItem value={"Steam Achievements"}>
-                          Steam Achievements
-                        </MultiSelectorItem>
-                        <MultiSelectorItem value={"Steam Cloud"}>
-                          Steam Cloud
-                        </MultiSelectorItem>
-                        <MultiSelectorItem value={"Steam Leaderboards"}>
-                          Steam Leaderboards
-                        </MultiSelectorItem>
-                        <MultiSelectorItem value={"Steam Trading Cards"}>
-                          Steam Trading Cards
-                        </MultiSelectorItem>
-                        <MultiSelectorItem value={"Steam Workshop"}>
-                          Steam Workshop
-                        </MultiSelectorItem>
-                        <MultiSelectorItem
-                          value={"Steam is learning about this game"}
-                        >
-                          Steam is learning about this game
-                        </MultiSelectorItem>
-                        <MultiSelectorItem value={"Tracked Controller Support"}>
-                          Tracked Controller Support
-                        </MultiSelectorItem>
-                        <MultiSelectorItem value={"VR Only"}>
-                          VR Only
-                        </MultiSelectorItem>
+                        {categoriesList.map((category) => (
+                          <MultiSelectorItem key={category} value={category}>
+                            {category}
+                          </MultiSelectorItem>
+                        ))}
                       </MultiSelectorList>
                     </MultiSelectorContent>
                   </MultiSelector>
                 </div>
               </fieldset>
-              <Button type="submit" size="sm" className="mx-auto gap-1.5">
+              <Button
+                type="submit"
+                size="sm"
+                className="mx-auto gap-1.5"
+                onClick={handleSubmit}
+              >
                 Predict success
               </Button>
             </form>
@@ -803,12 +817,6 @@ export default function Dashboard() {
               </TableBody>
             </Table>
           </fieldset>
-          {/* <div className="relative flex h-full min-h-[50vh] flex-col rounded-xl bg-muted/50 p-4 lg:col-span-2">
-            <Badge variant="outline" className="absolute right-3 top-3">
-              Output
-            </Badge>
-            <div className="flex-1" />
-          </div> */}
         </main>
       </div>
     </div>
