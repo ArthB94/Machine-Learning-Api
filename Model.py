@@ -4,22 +4,8 @@ from sklearn.model_selection import train_test_split, GridSearchCV, RandomizedSe
 from sklearn.metrics import mean_squared_error
 from sklearn.preprocessing import MinMaxScaler
 
-# TODO
-# - Penser à bien analyser les variables
-# - Scale les valeurs (sinon ça marchera pas) -> Ex : ramener à une échelle entre 0 et 1.
-# x One Hot Encoding (pour les variable de catégories)
-
-# Problèmes identifiés :
-# x Fautes dans le dataset (surtout content_descriptor) (ex : Violance au lieu de Violence, Intense Violence et Extreme Violence : quelle différence ?, un identifiant complet ?? "PEGI URN: 60978P-C81M00-003000-000000")
-# x Valeurs manquantes (ex : original_price)
-
-# Genres : 
-# x Supprimer "Early Access", "Indie" des genres ?
-# x Supprimer ceux qui ne sont pas des jeux ? (Animation & Modeling, Audio Production, Design & Illustration, Game Development, Movie, Software Training, Utilities, Video Production, Web Publishing)
-
 # Charger les données à partir du fichier CSV
 df = pd.read_csv('steam-games.csv')
-# columns = ['genres','categories','developer','publisher','original_price','discounted_price','dlc_available','age_rating','content_descriptor','win_support','mac_support','linux_support','overall_review_%','overall_review_count']
 columns = ['genres','categories','developer','publisher','original_price','discounted_price','age_rating','content_descriptor','win_support','mac_support','linux_support','overall_review_%','overall_review_count']
 df = df[columns]
 
@@ -32,23 +18,14 @@ new_genres.drop(columns=['Early Access', 'Indie'], inplace=True)
 # Remove columns that are not games
 new_genres.drop(columns=['Animation & Modeling', 'Audio Production', 'Design & Illustration', 'Game Development', 'Movie', 'Software Training', 'Utilities', 'Video Production', 'Web Publishing'], inplace=True)
 
-
-# new_content_descriptor = df['content_descriptor'].str.split(', ', expand=True)
-# new_content_descriptor = pd.get_dummies(new_content_descriptor.stack()).groupby(level=0).sum()
-
 new_categories = df['categories'].str.split(', ', expand=True)
 new_categories = pd.get_dummies(new_categories.stack()).groupby(level=0).sum()
-
-# get_dumies pour developer, publisher
-# new_developer = pd.get_dummies(df['developer'])
-# new_publisher = pd.get_dummies(df['publisher'])
 
 # Remove genres and categories that have less than 1000 rows that have a value of 1
 new_genres = new_genres.loc[:, new_genres.sum() >= 1000]
 new_categories = new_categories.loc[:, new_categories.sum() >= 1000]
 
 # Ajouter les colonnes séparées au DataFrame
-# df = pd.concat([df, new_genres, new_content_descriptor, new_categories, new_developer, new_publisher], axis=1)
 df = pd.concat([df, new_genres, new_categories], axis=1)
 
 # Supprimer les colonnes originales
@@ -89,13 +66,9 @@ df = df.dropna()
 
 # Séparer les caractéristiques (X) de la variable cible (y)
 target_variable = 'overall_review_%'
-# df = df.drop('overall_review_%', axis=1)
 
 X = df.drop(target_variable, axis=1)
 y = df[target_variable]
-
-# y = df[['overall_review_count', 'overall_review_%']]
-# X = df.drop(['overall_review_count', 'overall_review_%'], axis=1)
 
 df1 = X[X.isna().any(axis=1)]
 print (df1)
@@ -120,13 +93,6 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 
 from sklearn.ensemble import GradientBoostingRegressor
 # Define the parameter grid
-# param_grid = {
-#     'n_estimators': [50, 100, 150, 200, 250, 300, 350, 400, 450, 500],
-#     'learning_rate': [0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.1, 0.5, 1, 2],
-#     'max_depth': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-#     'min_samples_split': [2, 4, 6, 8, 10, 12, 14, 16, 18, 20],
-#     'min_samples_leaf': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-# }
 param_grid = {
     'n_estimators': [100, 200, 300, 400, 500],
     'learning_rate': [0.01, 0.05, 0.1, 0.5, 1],
@@ -167,7 +133,6 @@ y_pred = model.predict(X_test)
 rmse = mean_squared_error(y_test, y_pred, squared=False)
 print('RMSE:', rmse)
 print(model.score(X_test, y_test))
-
 
 
 # Sauvegarder le modèle dans un fichier binaire
